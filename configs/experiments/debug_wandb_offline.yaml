@@ -1,0 +1,32 @@
+# =============================================================================
+# W&B 离线调试配置
+# 适合本地验证日志是否正常写入 wandb/ 目录，而不依赖联网或登录。
+# =============================================================================
+
+model:
+  type: mixformer
+  size: custom
+  num_heads: 4
+  num_layers: 1
+  head_dim: 64
+
+train:
+  num_epochs: 2
+  batch_size: 32
+  lr: 1.0e-3
+  seed: 42
+
+wandb:
+  enabled: true
+  project: MixFormer
+  mode: offline
+  name: debug-offline
+  tags: [debug, offline]
+  watch_model: false
+  log_model: false
+
+data:
+  max_seq_len: 8
+  num_tasks: 2
+  train_samples: 256
+  eval_samples: 64

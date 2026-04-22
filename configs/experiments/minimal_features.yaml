@@ -1,0 +1,43 @@
+# =============================================================================
+# 精简特征配置示例
+# 演示如何自定义特征集，仅保留核心特征用于快速实验
+# 用法: python train.py --config configs/experiments/minimal_features.yaml
+# =============================================================================
+
+model:
+  type: mixformer
+  size: custom
+  num_heads: 8
+  num_layers: 2
+  head_dim: 128
+
+train:
+  num_epochs: 5
+  batch_size: 128
+  lr: 1.0e-3
+  seed: 42
+
+data:
+  max_seq_len: 64
+  num_tasks: 2
+  train_samples: 10000
+  eval_samples: 2000
+
+features:
+  non_sequential:
+    # 仅保留 6 个核心特征
+    - { name: user_id,    vocab_size: 50000,  embed_dim: 16, group: user }
+    - { name: age_bucket, vocab_size: 10,     embed_dim: 8,  group: user }
+    - { name: gender,     vocab_size: 3,      embed_dim: 8,  group: user }
+    - { name: item_id,    vocab_size: 100000, embed_dim: 16, group: item }
+    - { name: category,   vocab_size: 500,    embed_dim: 8,  group: item }
+    - { name: hour,       vocab_size: 24,     embed_dim: 8,  group: context }
+
+  sequential:
+    # 仅保留 3 个核心序列特征
+    - { name: action_item_id, vocab_size: 100000, embed_dim: 16 }
+    - { name: action_type,    vocab_size: 10,     embed_dim: 8  }
+    - { name: time_gap,       vocab_size: 50,     embed_dim: 8  }
+
+  user_groups: [user]
+  item_groups: [item, context]

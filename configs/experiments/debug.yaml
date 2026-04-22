@@ -1,0 +1,27 @@
+# =============================================================================
+# MixFormer-small 快速调试配置
+# 小模型 + 少量数据，适合在 CPU 上快速验证流程
+# 用法: python train.py --config configs/experiments/debug.yaml
+# =============================================================================
+
+model:
+  type: mixformer
+  size: custom
+  num_heads: 4
+  num_layers: 1
+  head_dim: 64
+
+train:
+  num_epochs: 2
+  batch_size: 32
+  lr: 1.0e-3
+  seed: 42
+
+wandb:
+  enabled: false
+
+data:
+  max_seq_len: 8
+  num_tasks: 2
+  train_samples: 256
+  eval_samples: 64

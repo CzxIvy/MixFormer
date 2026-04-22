@@ -1,0 +1,49 @@
+# =============================================================================
+# AmazonElectronics_x1 示例配置
+# 这是一个真实数据集 override 模板：训练时会先加载 default.yaml，
+# 再用本文件覆盖；因此这里不需要把所有字段都重复写全。
+# 请按你自己的预处理结果修改路径、vocab_size 和列名。
+# 推荐数据文件格式：JSONL
+# =============================================================================
+
+model:
+  type: mixformer
+  size: custom
+  num_heads: 8
+  num_layers: 2
+  head_dim: 128
+  dropout: 0.0
+
+train:
+  num_epochs: 5
+  batch_size: 128
+  lr: 1.0e-3
+  weight_decay: 1.0e-5
+  optimizer: adamw
+  seed: 42
+  device: auto
+
+data:
+  source: local_file
+  file_format: jsonl
+  train_path: datasets/AmazonElectronics_x1/train.jsonl
+  eval_path: datasets/AmazonElectronics_x1/valid.jsonl
+  user_id_column: user_id
+  label_columns: [label]
+  sequence_separator: " "
+  max_seq_len: 50
+  num_tasks: 1
+
+features:
+  non_sequential:
+    - { name: user_id, vocab_size: 192404, embed_dim: 32, group: user }
+    - { name: item_id, vocab_size: 63002, embed_dim: 32, group: item }
+    - { name: category_id, vocab_size: 801, embed_dim: 16, group: item }
+    - { name: brand_id, vocab_size: 4200, embed_dim: 16, group: item }
+
+  sequential:
+    - { name: hist_item_id, vocab_size: 63002, embed_dim: 32 }
+    - { name: hist_category_id, vocab_size: 801, embed_dim: 16 }
+
+  user_groups: [user]
+  item_groups: [item]

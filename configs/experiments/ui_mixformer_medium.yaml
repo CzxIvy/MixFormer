@@ -1,0 +1,25 @@
+# =============================================================================
+# UI-MixFormer-medium 训练配置 (用户-物品解耦)
+# 论文设置: 与 MixFormer-medium 相同精度，~36% FLOPs 减少
+# 用法: python train.py --config configs/experiments/ui_mixformer_medium.yaml
+# =============================================================================
+
+model:
+  type: ui              # 启用 User-Item 解耦
+  size: medium          # N=16, L=4, D=768
+  dropout: 0.0
+
+train:
+  num_epochs: 10
+  batch_size: 128
+  lr: 5.0e-4
+  weight_decay: 1.0e-5
+  optimizer: adamw
+  seed: 42
+  device: auto
+
+data:
+  max_seq_len: 512
+  num_tasks: 2
+  train_samples: 100000
+  eval_samples: 20000

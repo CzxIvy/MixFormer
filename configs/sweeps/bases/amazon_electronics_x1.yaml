@@ -1,0 +1,57 @@
+# =============================================================================
+# AmazonElectronics_x1 正式 Sweep 基线配置
+# 这是一个用于 W&B sweep 的 override 配置：训练时会先加载 default.yaml，
+# 再用本文件覆盖；因此这里只需要保留正式 sweep 相关的关键差异项。
+# 默认指向仓库内示例数据，可直接启动。
+# 如果你要替换成自己的真实数据集，优先修改 data 路径和 features 定义。
+# =============================================================================
+
+model:
+  type: mixformer
+  size: custom
+  num_heads: 8
+  num_layers: 2
+  head_dim: 128
+  dropout: 0.1
+
+train:
+  num_epochs: 8
+  batch_size: 128
+  lr: 8.0e-4
+  weight_decay: 1.0e-5
+  optimizer: adamw
+  seed: 42
+  device: auto
+
+wandb:
+  enabled: true
+  log_model: false
+  best_model_metric: mean/AUC
+  best_model_mode: max
+  save_local_best_checkpoint: true
+  local_checkpoint_dir: outputs
+
+data:
+  source: local_file
+  file_format: jsonl
+  train_path: datasets/AmazonElectronics_x1/train.jsonl
+  eval_path: datasets/AmazonElectronics_x1/valid.jsonl
+  user_id_column: user_id
+  label_columns: [label]
+  sequence_separator: " "
+  max_seq_len: 50
+  num_tasks: 1
+
+features:
+  non_sequential:
+    - { name: user_id, vocab_size: 192404, embed_dim: 32, group: user }
+    - { name: item_id, vocab_size: 63002, embed_dim: 32, group: item }
+    - { name: category_id, vocab_size: 801, embed_dim: 16, group: item }
+    - { name: brand_id, vocab_size: 4200, embed_dim: 16, group: item }
+
+  sequential:
+    - { name: hist_item_id, vocab_size: 63002, embed_dim: 32 }
+    - { name: hist_category_id, vocab_size: 801, embed_dim: 16 }
+
+  user_groups: [user]
+  item_groups: [item]

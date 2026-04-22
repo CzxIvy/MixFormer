@@ -1,0 +1,121 @@
+# =============================================================================
+# MixFormer 默认配置（基础模板）
+# 所有其他配置文件可以只写需要覆盖的字段，其余继承此默认值
+# =============================================================================
+
+# ---------- 模型架构 ----------
+model:
+  type: mixformer            # mixformer | ui (UI-MixFormer 用户-物品解耦)
+  size: small                # small | medium | custom
+  # 以下仅在 size=custom 时生效；small/medium 会自动设置 num_heads/head_dim
+  num_heads: 16              # N: 特征 head 数量
+  num_layers: 4              # L: MixFormer block 层数
+  head_dim: 384              # D: 每个 head 的维度
+  ffn_hidden_dim: null       # per-head FFN 隐藏维度, null 则自动取 4*head_dim
+  seq_ffn_hidden_dim: null   # 序列 FFN 隐藏维度, null 则自动取 4*head_dim
+  task_hidden_dims: [256, 128]  # 任务塔 MLP 隐藏层维度
+  norm_eps: 1.0e-6
+  dropout: 0.0
+
+# ---------- 训练参数 ----------
+train:
+  num_epochs: 5
+  batch_size: 256
+  lr: 1.0e-3
+  weight_decay: 1.0e-5
+  optimizer: adamw           # adamw | rmsprop | sgd
+  scheduler: null            # null | cosine | step
+  warmup_steps: 0
+  grad_clip_norm: null       # null 表示不裁剪
+  num_workers: 0
+  seed: 42
+  device: auto               # auto | cpu | cuda | cuda:0
+
+# ---------- 实验跟踪 ----------
+wandb:
+  enabled: false
+  project: MixFormer
+  entity: null
+  name: null
+  group: null
+  job_type: train
+  tags: []
+  notes: null
+  mode: online               # online | offline | disabled
+  dir: wandb
+  watch_model: false
+  watch_log: gradients       # gradients | all | parameters
+  watch_log_freq: 100
+  log_model: false
+  artifact_name: mixformer-model
+  best_model_metric: task_0/AUC   # 也可设为 mean/AUC 或 eval/task_0/AUC
+  best_model_mode: max
+  save_local_best_checkpoint: true
+  local_checkpoint_dir: outputs
+  local_checkpoint_name: best_model.pt
+  finish_previous: false
+
+# ---------- Sweep / 搜索 ----------
+sweep:
+  max_parameters: null      # 例如 80000000；超过时 sweep run 会自动跳过
+
+# ---------- 数据 ----------
+data:
+  source: synthetic          # synthetic | local_file
+  file_format: jsonl         # local_file 时可选: jsonl | csv
+  train_path: null           # local_file 训练集路径
+  eval_path: null            # local_file 验证集路径
+  user_id_column: user_id    # UAUC 计算所用用户列
+  label_columns: [label_0, label_1]  # local_file 标签列，长度应等于 num_tasks
+  sequence_separator: " "    # CSV 中序列列若为字符串，按该分隔符切分
+  max_seq_len: 64
+  num_tasks: 2
+  train_samples: 10000       # 合成数据样本数（真实数据时忽略）
+  eval_samples: 2000
+
+# ---------- 特征定义 ----------
+# 非序列特征: 每项为 {name, vocab_size, embed_dim, group}
+# group 取值: user / item / context，用于 UI-MixFormer 的用户-物品解耦
+features:
+  non_sequential:
+    # ===== 用户特征 =====
+    - { name: user_id,               vocab_size: 100000, embed_dim: 32, group: user }
+    - { name: age_bucket,            vocab_size: 10,     embed_dim: 8,  group: user }
+    - { name: gender,                vocab_size: 3,      embed_dim: 8,  group: user }
+    - { name: city,                  vocab_size: 1000,   embed_dim: 16, group: user }
+    - { name: occupation,            vocab_size: 100,    embed_dim: 8,  group: user }
+    - { name: interest_level,        vocab_size: 50,     embed_dim: 8,  group: user }
+    - { name: registration_bucket,   vocab_size: 20,     embed_dim: 8,  group: user }
+    - { name: active_level,          vocab_size: 10,     embed_dim: 8,  group: user }
+    - { name: user_tag_1,            vocab_size: 100,    embed_dim: 16, group: user }
+    - { name: user_tag_2,            vocab_size: 100,    embed_dim: 16, group: user }
+    # ===== 物品特征 =====
+    - { name: item_id,               vocab_size: 500000, embed_dim: 32, group: item }
+    - { name: category,              vocab_size: 1000,   embed_dim: 16, group: item }
+    - { name: subcategory,           vocab_size: 5000,   embed_dim: 16, group: item }
+    - { name: author_id,             vocab_size: 100000, embed_dim: 32, group: item }
+    - { name: duration_bucket,       vocab_size: 20,     embed_dim: 8,  group: item }
+    - { name: quality_score_bucket,  vocab_size: 50,     embed_dim: 8,  group: item }
+    - { name: content_type,          vocab_size: 10,     embed_dim: 8,  group: item }
+    - { name: item_tag_1,            vocab_size: 100,    embed_dim: 16, group: item }
+    - { name: item_tag_2,            vocab_size: 100,    embed_dim: 16, group: item }
+    - { name: freshness_bucket,      vocab_size: 10,     embed_dim: 8,  group: item }
+    # ===== 上下文特征 =====
+    - { name: device_type,           vocab_size: 10,     embed_dim: 8,  group: context }
+    - { name: os,                    vocab_size: 5,      embed_dim: 8,  group: context }
+    - { name: hour_of_day,           vocab_size: 24,     embed_dim: 8,  group: context }
+    - { name: day_of_week,           vocab_size: 7,      embed_dim: 8,  group: context }
+
+  # 序列特征: 用户行为序列中每个 action 的特征
+  sequential:
+    - { name: action_item_id,        vocab_size: 500000, embed_dim: 32 }
+    - { name: action_type,           vocab_size: 10,     embed_dim: 8  }
+    - { name: time_gap_bucket,       vocab_size: 50,     embed_dim: 8  }
+    - { name: watch_duration_bucket, vocab_size: 20,     embed_dim: 8  }
+    - { name: position_bucket,       vocab_size: 100,    embed_dim: 8  }
+
+  # UI-MixFormer 解耦分组：user 侧 / item 侧
+  # 此处定义哪些 group 归 user 侧，哪些归 item 侧
+  # context 特征默认归入 item 侧（与候选物品一起计算）
+  user_groups: [user]
+  item_groups: [item, context]

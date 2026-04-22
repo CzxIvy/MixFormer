@@ -1,0 +1,34 @@
+# =============================================================================
+# W&B 离线调试配置（最佳 checkpoint artifact）
+# 用于验证按最佳 AUC 保存 best_model.pt，而不是最终 epoch 权重。
+# =============================================================================
+
+model:
+  type: mixformer
+  size: custom
+  num_heads: 4
+  num_layers: 1
+  head_dim: 64
+
+train:
+  num_epochs: 2
+  batch_size: 32
+  lr: 1.0e-3
+  seed: 42
+
+wandb:
+  enabled: true
+  project: MixFormer
+  mode: offline
+  name: debug-best-artifact
+  tags: [debug, offline, artifact]
+  watch_model: false
+  log_model: true
+  best_model_metric: task_0/AUC
+  best_model_mode: max
+
+data:
+  max_seq_len: 8
+  num_tasks: 2
+  train_samples: 64
+  eval_samples: 32

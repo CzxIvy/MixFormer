@@ -1,0 +1,25 @@
+# =============================================================================
+# MixFormer-medium 训练配置
+# 论文设置: N=16, L=4, D=768, 1226M dense params
+# 用法: python train.py --config configs/experiments/mixformer_medium.yaml
+# =============================================================================
+
+model:
+  type: mixformer
+  size: medium          # N=16, L=4, D=768
+  dropout: 0.0
+
+train:
+  num_epochs: 10
+  batch_size: 128
+  lr: 5.0e-4
+  weight_decay: 1.0e-5
+  optimizer: adamw
+  seed: 42
+  device: auto
+
+data:
+  max_seq_len: 512
+  num_tasks: 2
+  train_samples: 100000
+  eval_samples: 20000
